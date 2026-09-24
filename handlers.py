@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import html
 import logging
-import time
 
 from telethon import TelegramClient, events
 from telethon.errors import FloodWaitError, MessageDeleteForbiddenError, RPCError
@@ -19,12 +18,7 @@ __all__ = ["register"]
 
 log = logging.getLogger("stickerguard")
 
-# One notice per chat at most every N seconds, so a sticker spammer cannot make
-# the userbot flood their DM back.
-NOTICE_COOLDOWN = 30
-
 _background: set[asyncio.Task] = set()
-_last_notice: dict = {}
 
 
 def _spawn(coro) -> None:
@@ -58,8 +52,8 @@ def register(client: TelegramClient, config: Config, store: PermitStore, me_id: 
             message = await event.edit(text)
         except RPCError:
             message = await event.respond(text)
-        if config.notice_ttl > 0 and message is not None:
-            _spawn(_delete_after(client, event.chat_id, message.id, config.notice_ttl))
+        if config.card_ttl > 0 and message is not None:
+            _spawn(_delete_after(client, event.chat_id, message.id, config.card_ttl))
 
     @client.on(events.NewMessage(incoming=True, func=lambda e: e.is_private))
     async def drop_stickers(event) -> None:
@@ -89,20 +83,6 @@ def register(client: TelegramClient, config: Config, store: PermitStore, me_id: 
             return
 
         log.info("deleted sticker from %s (%s)", get_display_name(sender) or "unknown", sender_id)
-
-        if not config.notice:
-            return
-        now = time.monotonic()
-        if now - _last_notice.get(event.chat_id, 0.0) < NOTICE_COOLDOWN:
-            return
-        _last_notice[event.chat_id] = now
-        try:
-            notice = await client.send_message(event.chat_id, config.notice_text)
-        except RPCError as exc:
-            log.debug("could not send notice to %s: %s", event.chat_id, exc)
-            return
-        if config.notice_ttl > 0:
-            _spawn(_delete_after(client, event.chat_id, notice.id, config.notice_ttl))
 
     @client.on(
         events.NewMessage(

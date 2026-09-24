@@ -57,9 +57,7 @@ class Config:
     session_path: Path
     string_session: str | None
     db_path: Path
-    notice: bool
-    notice_text: str
-    notice_ttl: int
+    card_ttl: int
     ignore_bots: bool
     log_level: str
 
@@ -90,9 +88,7 @@ class Config:
             session_path=(BASE_DIR / session_name).resolve(),
             string_session=string_session,
             db_path=(BASE_DIR / db_name).resolve(),
-            notice=_flag("NOTICE", True),
-            notice_text=_text("NOTICE_TEXT", "▸ Stickers are blocked in this chat."),
-            notice_ttl=_integer("NOTICE_TTL", 6),
+            card_ttl=_integer("CARD_TTL", 6),
             ignore_bots=_flag("IGNORE_BOTS", True),
             log_level=_text("LOG_LEVEL", "INFO").upper(),
         )

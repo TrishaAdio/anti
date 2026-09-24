@@ -1,8 +1,8 @@
 # sticker-guard
 
 A Telethon userbot that runs on your own Telegram account. Any sticker someone sends you in a
-private chat is deleted for both sides the moment it arrives. Send `/permit` in that person's DM
-and their stickers are left alone from then on.
+private chat is deleted for both sides the moment it arrives, with no reply of any kind. Send
+`/permit` in that person's DM and their stickers are left alone from then on.
 
 Groups and channels are never touched — every handler is filtered to private chats.
 
@@ -17,7 +17,7 @@ too (`.permit`, `!permit`).
 | `/unpermit` | Block them again |
 | `/permitted` | List everyone currently allowed |
 
-The command message is edited into a short status card and then removed after `NOTICE_TTL` seconds.
+The command message is edited into a short status card and then removed after `CARD_TTL` seconds.
 
 ## Setup
 
@@ -53,16 +53,13 @@ print(TelegramClient(StringSession(), API_ID, 'API_HASH').start().session.save()
 | `SESSION_NAME` | `sticker_guard` | Session file name |
 | `STRING_SESSION` | empty | Use a session string instead of a file |
 | `DB_PATH` | `permits.db` | Permit database location |
-| `NOTICE` | `true` | Send a one-line notice after deleting |
-| `NOTICE_TEXT` | `▸ Stickers are blocked in this chat.` | Text of that notice |
-| `NOTICE_TTL` | `6` | Seconds before notices and command cards self-delete (`0` keeps them) |
+| `CARD_TTL` | `6` | Seconds before a `/permit` status card self-deletes (`0` keeps it) |
 | `IGNORE_BOTS` | `true` | Leave DMs with bots alone |
 | `LOG_LEVEL` | `INFO` | `DEBUG` for verbose Telethon-side detail |
 
-Repeat notices are rate-limited to one per chat every 30 seconds, so a sticker spammer cannot turn
-the userbot into a flood of its own.
-
 ## Behaviour notes
+
+- Deletions are silent. The sender gets no warning message, only the vanished sticker.
 
 - Static, animated (`.tgs`) and video (`.webm`) stickers are all covered.
 - Deletion uses `revoke=True`, which in private chats removes the message for both participants.
